@@ -1,5 +1,12 @@
 import subprocess
-from reseaux_connus import RESEAUX_CONNUS
+import json
+import os
+
+def charger_reseaux_connus():
+    dossier = os.path.dirname(os.path.abspath(__file__))
+    chemin = os.path.join(dossier, "reseaux_connus.json")
+    with open(chemin, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 def scan_networks():
     result = subprocess.run(
@@ -32,11 +39,12 @@ def detecter_anomalies(reseaux, reseaux_connus):
     return alertes
 
 if __name__ == "__main__":
+    reseaux_connus = charger_reseaux_connus()
     texte = scan_networks()
     reseaux = extraire_reseaux(texte)
     for r in reseaux:
         print(r["ssid"], "-", r["bssid"])
-    alertes = detecter_anomalies(reseaux, RESEAUX_CONNUS)
+    alertes = detecter_anomalies(reseaux, reseaux_connus)
     if alertes:
         for a in alertes:
             print(a)
