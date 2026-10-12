@@ -1,4 +1,5 @@
 import subprocess
+from reseaux_connus import RESEAUX_CONNUS
 
 def scan_networks():
     result = subprocess.run(
@@ -19,7 +20,25 @@ def extraire_reseaux(texte):
             reseaux.append({"ssid": ssid_actuel, "bssid": bssid})
     return reseaux
 
+def detecter_anomalies(reseaux, reseaux_connus):
+    alertes = []
+    for r in reseaux:
+        ssid = r["ssid"]
+        bssid = r["bssid"].lower()
+        if ssid in reseaux_connus:
+            macs_ok = [m.lower() for m in reseaux_connus[ssid]]
+            if bssid not in macs_ok:
+                alertes.append("ALERTE : " + ssid + " détecté avec une MAC inconnue (" + bssid + ")")
+    return alertes
+
 if __name__ == "__main__":
     texte = scan_networks()
-    for r in extraire_reseaux(texte):
+    reseaux = extraire_reseaux(texte)
+    for r in reseaux:
         print(r["ssid"], "-", r["bssid"])
+    alertes = detecter_anomalies(reseaux, RESEAUX_CONNUS)
+    if alertes:
+        for a in alertes:
+            print(a)
+    else:
+        print("Aucune anomalie détectée")
